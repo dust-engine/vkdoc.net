@@ -135,8 +135,8 @@ UContainer
             UBadge(v-for="t in tasks" :key="t" color="neutral" variant="subtle") {{ t }}
         div(v-if="page.structextends?.length")
           .font-medium.text-muted.mb-1 Extends
-          NuxtLink.font-mono.text-primary.block.truncate(v-for="s in page.structextends" :key="s" :to="`/man/${s}`" class="hover:underline" :title="s") {{ s }}
+          NuxtLink.font-mono.block.truncate(v-for="s in page.structextends" :key="s" :to="`/man/${s}`" class="hover:underline" :title="s") {{ s }}
         div(v-if="page.extendedby?.length")
           .font-medium.text-muted.mb-1 Extended By
-          NuxtLink.font-mono.text-primary.block.truncate(v-for="s in page.extendedby" :key="s" :to="`/man/${s}`" class="hover:underline" :title="s") {{ s }}
+          NuxtLink.font-mono.block.truncate(v-for="s in page.extendedby" :key="s" :to="`/man/${s}`" class="hover:underline" :title="s") {{ s }}
 </template>

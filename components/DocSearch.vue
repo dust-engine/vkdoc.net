@@ -180,12 +180,22 @@ defineShortcuts({
   },
 })
 
-const suggestions = [
-  { label: 'vkCmdDraw', to: '/man/vkCmdDraw' },
-  { label: 'VkResult', to: '/man/VkResult' },
-  { label: 'VkPhysicalDeviceFeatures', to: '/man/VkPhysicalDeviceFeatures' },
-  { label: 'VK_KHR_ray_tracing_pipeline', to: '/extensions/VK_KHR_ray_tracing_pipeline' },
-]
+const { data: topPages } = useFetch<{ page: string, visitors: number }[]>('/api/top')
+
+const suggestions = computed(() => {
+  if (topPages.value?.length) {
+    return topPages.value.slice(0, 8).map(p => ({
+      label: p.page.replace('/man/', ''),
+      to: p.page,
+    }))
+  }
+  return [
+    { label: 'vkCmdDraw', to: '/man/vkCmdDraw' },
+    { label: 'VkResult', to: '/man/VkResult' },
+    { label: 'VkPhysicalDeviceFeatures', to: '/man/VkPhysicalDeviceFeatures' },
+    { label: 'VK_KHR_ray_tracing_pipeline', to: '/extensions/VK_KHR_ray_tracing_pipeline' },
+  ]
+})
 </script>
 
 <template>
@@ -227,7 +237,7 @@ const suggestions = [
           <!-- Empty state -->
           <div v-if="!query || !searchActive" class="p-6 space-y-5">
             <p class="text-xs font-medium text-muted uppercase tracking-wide">
-              Quick links
+              {{ topPages?.length ? 'Trending this week' : 'Quick links' }}
             </p>
             <div class="space-y-1">
               <NuxtLink

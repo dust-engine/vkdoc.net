@@ -35,7 +35,6 @@ const topPagesList = computed(() => {
     :links="[
       { label: 'Start Reading', icon: 'i-lucide-book-open', size: 'xl', to: '/chapters/introduction' },
     ]"
-    :ui="{ root: 'py-16 sm:py-24' }"
   >
     <template #headline>
       <UBadge v-if="versionLabel" color="primary" variant="subtle">
