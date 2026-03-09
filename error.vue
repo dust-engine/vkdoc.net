@@ -1,12 +1,14 @@
 <template>
-  <NuxtLayout>
-    <UPageError />
-  </NuxtLayout>
-  <ClientOnly>
-    <DocSearch />
-  </ClientOnly>
+  <UApp>
+    <NuxtLayout>
+      <UError :error="error" />
+    </NuxtLayout>
+    <ClientOnly>
+      <DocSearch />
+    </ClientOnly>
+  </UApp>
 </template>
-  
+
 <script setup lang="ts">
 import type { NuxtError } from '#app'
 

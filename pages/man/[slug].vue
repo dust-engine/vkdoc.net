@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import type { ParsedContent } from '@nuxt/content/dist/runtime/types'
-
 const route = useRoute()
-const { data: page } = await useFetch<ParsedContent>(`https://data.vkdoc.net/man/${route.params.slug}.json`)
+const { data: page } = await useFetch<any>(`https://data.vkdoc.net/man/${route.params.slug}.json`)
 if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found' })
 }
@@ -10,7 +8,6 @@ if (page.value.redirect) {
   await navigateTo('/man/' + page.value.redirect)
 }
 
-// eslint-disable-next-line unused-imports/no-unused-vars
 const headline = computed(() => {
   const ty: string = page.value?.type
   if (ty) {
@@ -26,7 +23,7 @@ const headline = computed(() => {
       builtins: 'SPIR-V Built-In',
       basetypes: 'Basetype',
       freeform: 'Manual',
-      spirv: 'SPIR-V'
+      spirv: 'SPIR-V',
     }[ty]
     if (name) {
       return name
@@ -40,7 +37,6 @@ interface Attribute {
   values: string
 }
 
-// eslint-disable-next-line unused-imports/no-unused-vars
 const attributes: Attribute[] = computed(() => {
   const v: Attribute[] = []
   if (!page.value) {
@@ -68,19 +64,17 @@ const attributes: Attribute[] = computed(() => {
   return v
 })
 
-// eslint-disable-next-line unused-imports/no-unused-vars
-const links = computed(() => {
+const breadcrumbItems = computed(() => {
   if (!page.value) {
     return []
   }
-  const links = [{
+  return [{
     label: 'Refpages',
   }, {
     label: page.value.parent,
   }, {
     label: page.value.title,
   }]
-  return links
 })
 
 useSeoMeta({
@@ -109,7 +103,7 @@ const result = page && {
 useHead({
   script: [
     {
-      type: 'application/ld-json',
+      type: 'application/ld+json',
       innerHTML: result ? JSON.stringify(result) : '',
     },
   ],
@@ -118,17 +112,13 @@ useHead({
 
 <template lang="pug">
 UContainer
-  UBreadcrumb(:links="links" v-if="page.parent" class="border-gray-200 dark:border-gray-700").py-4.border-b
-    template(#default="{ link, isActive, index, label }")
-      template(v-for="[i, item] in link.label.split(',').entries()" :key="item")
-        span(v-if="i > 0") |
-        span {{ item.trim() }}
+  UBreadcrumb(:items="breadcrumbItems" v-if="page.parent" separator-icon="i-lucide-chevron-right").py-4.border-b.border-default
   UPage
     UPageHeader(id="man-header" :headline="headline" :title="page.title" :description="page.description" :class="{ 'border-b-0': attributes.length > 0 }")
-    div(class="relative flex border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden not-prose" v-if="attributes.length > 0")
-        div(v-for="attrib in attributes" :key="attrib.id" class="flex flex-col gap-0.5 justify-between py-1.5 font-medium bg-gray-50 dark:bg-gray-800 border-r border-r-gray-200 dark:border-r-gray-700")
-          label(class="block text-xs px-2.5 font-medium text-gray-400 dark:text-gray-500 -my-px") {{ attrib.title }}
+    div(class="relative flex border border-default rounded-md overflow-hidden not-prose" v-if="attributes.length > 0")
+        div(v-for="attrib in attributes" :key="attrib.id" class="flex flex-col gap-0.5 justify-between py-1.5 font-medium bg-muted/50 border-r border-default")
+          label(class="block text-xs px-2.5 font-medium text-muted -my-px") {{ attrib.title }}
           span(class="mx-2.5") {{ attrib.values }}
-    UPageBody(prose).docbody
+    UPageBody.docbody
       ContentRenderer(v-if="page.body" :value="page")
 </template>

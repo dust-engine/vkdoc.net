@@ -11,11 +11,13 @@ addAPIProvider('dust', {
 </script>
 
 <template>
-  <NuxtLayout>
-    <NuxtLoadingIndicator />
-    <NuxtPage />
-  </NuxtLayout>
-  <ClientOnly>
-    <DocSearch />
-  </ClientOnly>
+  <UApp>
+    <NuxtLayout>
+      <NuxtLoadingIndicator />
+      <NuxtPage />
+    </NuxtLayout>
+    <ClientOnly>
+      <DocSearch />
+    </ClientOnly>
+  </UApp>
 </template>

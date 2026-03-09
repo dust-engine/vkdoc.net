@@ -14,4 +14,4 @@ VulkanHub is dedicated to providing improved access to the Vulkan Specification,
 
 - Disclaimer on Accuracy: VulkanHub endeavors to redistribute the Vulkan Specification with the highest degree of accuracy possible, operating on a best-effort basis. However, due to necessary transformations applied to enhance the functionality and user experience of our website, there may be instances of inadvertent inaccuracies or deviations from the original specification. Users of VulkanHub should acknowledge the potential for such discrepancies. VulkanHub expressly disclaims any liability for damages or losses that may arise from unintentional deviations or inaccuracies in the content provided. We encourage users to consult the original Vulkan Specification documents for mission-critical applications and decision-making processes.
 
-For further information and inquiries, please contact <ProseCodeInline>me<Icon name="i-heroicons-at-symbol"></Icon>neoto.xin</ProseCodeInline>.
+For further information and inquiries, please contact <ProseCodeInline>me<Icon name="i-lucide-at-sign"></Icon>neoto.xin</ProseCodeInline>.

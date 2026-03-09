@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
 .katex-display {
   font-size: 0.7rem;
 }

@@ -1,22 +1,25 @@
 <template lang="pug">
 UHeader
-  template(#logo)
+  template(#title)
     | VulkanHub
-  template(#center)
-    UContentSearchButton
   template(#right)
+    UButton(label="Search" icon="i-lucide-search" color="neutral" variant="ghost" @click="searchOpen = true")
     UColorModeButton
-    UButton(to="https://github.com/Neo-Zhixing/vkdoc.net" target="_blank" icon="@dust:fa6-pro-brands:github" color="gray" variant="ghost")
-  template(#panel)
+    UButton(to="https://github.com/Neo-Zhixing/vkdoc.net" target="_blank" icon="i-simple-icons-github" color="neutral" variant="ghost")
+  template(#body)
     LazyDocNav
 UMain
   slot
 UFooter
   template(#left)
-    .prose-sm.prose-grey.prose.footer-copyright(class="dark:prose-invert text-xs")
+    .text-xs.text-muted
       | A redistribution of #[a(href="") Vulkan Specification] under #[a(href="https://creativecommons.org/licenses/by/4.0/") CC-BY-4.0] by #[a(href="https://github.com/Neo-Zhixing/") Neo].
       br
-      | © The Khronos® Group Inc. {{ new Date().getFullYear() }}. All rights reserved.
+      | &copy; The Khronos&reg; Group Inc. {{ new Date().getFullYear() }}. All rights reserved.
       br
-      NuxtLink(to="/copyright" no-prefetch) Copyright Notice
+      NuxtLink(to="/copyright") Copyright Notice
 </template>
+
+<script setup lang="ts">
+const searchOpen = useState('searchOpen', () => false)
+</script>

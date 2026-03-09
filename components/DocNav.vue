@@ -1,16 +1,5 @@
 <script setup lang="ts">
-defineOptions({
-  inheritAttrs: false,
-})
-
-const config = {
-  wrapper: 'space-y-3',
-  accordion: {},
-  links: {},
-}
-
-const { ui, attrs } = useUI('navigation.tree', undefined, config, undefined, true)
-const { data: index } = await useFetch<{ title: string, index: string }[]>(`https://data.vkdoc.net/chapters/index.json`)
+const { data: index } = await useFetch<{ title: string, index: string, id: string, appendix?: boolean }[]>(`https://data.vkdoc.net/chapters/index.json`)
 const { data: extensionIndex } = await useFetch<{ extension: string, author: string, specialuse?: string }[]>(`https://data.vkdoc.net/extensions/index.json`)
 if (!index.value || !extensionIndex.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found' })
@@ -18,47 +7,44 @@ if (!index.value || !extensionIndex.value) {
 
 const chapters = computed(() => {
   if (!index.value) {
-    return
+    return []
   }
-  const chapters = index.value.filter((i: any) => !i.appendix).map((i: any) => ({
-    label: `${i.index}. ${i.title}`,
+  const items = index.value.filter((i: any) => !i.appendix).map((i: any) => ({
+    title: `${i.index}. ${i.title}`,
     to: `/chapters/${i.id}`,
-    noPrefetch: true,
   }))
   return [{
-    label: 'Vulkan Specification',
+    title: 'Vulkan Specification',
     icon: '@dust:fa6-pro-light:books',
-    children: chapters,
+    children: items,
   }]
 })
 const appendix = computed(() => {
   if (!index.value) {
-    return
+    return []
   }
 
-  const appendix = index.value.filter((i: any) => i.appendix).map((i: any) => ({
-    label: `${String.fromCharCode(65 + i.index)}. ${i.title}`,
+  const items = index.value.filter((i: any) => i.appendix).map((i: any) => ({
+    title: `${String.fromCharCode(65 + i.index)}. ${i.title}`,
     to: `/chapters/${i.id}`,
-    noPrefetch: true,
   }))
   return [{
-    label: 'Appendix',
+    title: 'Appendix',
     icon: '@dust:fa6-pro-light:paperclip',
-    children: appendix,
+    children: items,
   }]
 })
 const extensions = computed(() => {
   if (!extensionIndex.value) {
-    return
+    return []
   }
   const vendors: { [key: string]: any[] } = {}
   const specialuse: { [key: string]: any[] } = {}
   for (const extension of extensionIndex.value) {
     const vendor = extension.extension.match(/^VK_([A-Z]+)_/)![1]
     const item = {
-      label: extension.extension,
+      title: extension.extension,
       to: `/extensions/${extension.extension}`,
-      noPrefetch: true,
     }
     vendors[vendor] = vendors[vendor] || []
     vendors[vendor].push(item)
@@ -75,16 +61,16 @@ const extensions = computed(() => {
   delete vendors.KHR
   delete vendors.EXT
   return [{
-    label: 'Extensions',
+    title: 'Extensions',
     icon: '@dust:fa6-pro-light:puzzle-piece',
     children: [{
-      label: 'Khronos (KHR)',
+      title: 'Khronos (KHR)',
       children: khr,
     }, {
-      label: 'Cross-Vendor (EXT)',
+      title: 'Cross-Vendor (EXT)',
       children: ext,
     }, {
-      label: 'Vendor Specific',
+      title: 'Vendor Specific',
       children: Object.entries(vendors).map((a) => {
         const icon = {
           AMDX: 'bi:amd',
@@ -108,13 +94,13 @@ const extensions = computed(() => {
           EXT: '@dust:fa6-pro-solid:sparkles',
         }[a[0] as string] || '@dust:fa6-pro-solid:cube'
         return {
-          label: a[0],
+          title: a[0],
           icon,
           children: a[1],
         }
       }),
     }, {
-      label: 'Special Use',
+      title: 'Special Use',
       children: Object.entries(specialuse).map((a) => {
         const label = {
           devtools: 'Dev Tools',
@@ -122,10 +108,9 @@ const extensions = computed(() => {
           d3demulation: 'Direct3D Emulation',
           debugging: 'Debugging',
           cadsupport: 'CAD Support',
-
         }[a[0] as string] || a[0] as string
         return {
-          label,
+          title: label,
           children: a[1],
         }
       }),
@@ -135,24 +120,21 @@ const extensions = computed(() => {
 </script>
 
 <template>
-  <nav :class="ui.wrapper" v-bind="attrs">
-    <UNavigationAccordion
-      :links="chapters"
-      :multiple="false"
-      :default-open="($route.path.startsWith('/extensions') || $route.path === '/chapters/extensions') ? true : undefined"
-      :ui="{ ...ui.accordion, links: ui.links }"
-    />
-    <UNavigationAccordion
-      :links="appendix"
-      :multiple="false"
-      :default-open="($route.path.startsWith('/extensions') || $route.path === '/chapters/extensions') ? true : undefined"
-      :ui="{ ...ui.accordion, links: ui.links }"
-    />
-    <UNavigationAccordion
-      :links="extensions"
-      :multiple="false"
+  <nav class="space-y-3">
+    <UContentNavigation
+      :navigation="chapters"
+      type="single"
       :default-open="!($route.path.startsWith('/extensions') || $route.path === '/chapters/extensions')"
-      :ui="{ ...ui.accordion, links: ui.links }"
+    />
+    <UContentNavigation
+      :navigation="appendix"
+      type="single"
+      :default-open="false"
+    />
+    <UContentNavigation
+      :navigation="extensions"
+      type="single"
+      :default-open="$route.path.startsWith('/extensions') || $route.path === '/chapters/extensions'"
     />
   </nav>
 </template>

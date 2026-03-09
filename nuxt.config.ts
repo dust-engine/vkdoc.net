@@ -1,7 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  extends: ['@nuxt/ui-pro'],
   css: ['~/assets/style.css'],
 
   app: {
@@ -18,11 +17,10 @@ export default defineNuxtConfig({
   },
 
   modules: [
-    '@nuxt/content',
     '@nuxt/ui',
+    '@nuxt/content',
     '@nuxtjs/sitemap',
     'nuxt-meilisearch',
-    '@nuxtjs/web-vitals',
     '@vueuse/nuxt',
     '@nuxtjs/plausible',
     '@nuxtjs/algolia',
@@ -61,10 +59,6 @@ export default defineNuxtConfig({
     apiHost: 'https://analytics.vkdoc.net',
   },
 
-  router: {
-    prefetchLinks: false,
-  },
-
   nitro: {
     prerender: {
       routes: [
@@ -75,8 +69,8 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    plausibleToken: ''
+    plausibleToken: '',
   },
 
-  compatibilityDate: '2024-10-21'
+  compatibilityDate: '2025-03-08',
 })

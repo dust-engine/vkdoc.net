@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import type { ParsedContent } from '@nuxt/content/dist/runtime/types'
-
 const props = defineProps<{
   name: string
 }>()
 const emit = defineEmits(['pending'])
 
-const { data: page, pending } = await useFetch<ParsedContent>(`https://data.vkdoc.net/man/${props.name}.json`, {
+const { data: page, pending } = await useFetch<any>(`https://data.vkdoc.net/man/${props.name}.json`, {
   lazy: true,
 })
 watch([
@@ -25,7 +23,6 @@ interface Attribute {
   values: string
 }
 
-// eslint-disable-next-line unused-imports/no-unused-vars
 const attributes: Attribute[] = computed(() => {
   const v: Attribute[] = []
   if (!page.value) {
@@ -55,9 +52,9 @@ const attributes: Attribute[] = computed(() => {
 </script>
 
 <template lang="pug">
-.relative.flex.overflow-hidden(class="md:flex-row flex-col not-prose border-y border-y-gray-200 dark:border-y-gray-700 bg-gray-50 dark:bg-gray-800 divide-y md:divide-x md:divide-y-0 divide-gray-200 dark:divide-gray-700" v-if="attributes.length > 0")
+.relative.flex.overflow-hidden(class="md:flex-row flex-col not-prose border-y border-default bg-muted/50 divide-y md:divide-x md:divide-y-0 divide-default" v-if="attributes.length > 0")
   .flex.flex-col.justify-between(v-for="attrib in attributes" :key="attrib.id" class="gap-0.5 py-1.5")
-    label(class="block text-xs px-2.5 font-medium text-gray-400 dark:text-gray-500 -my-px") {{ attrib.title }}
+    label(class="block text-xs px-2.5 font-medium text-muted -my-px") {{ attrib.title }}
     span(class="mx-2.5") {{ attrib.values }}
 .px-4
   ContentRenderer(v-if="page && page.body" :value="page")

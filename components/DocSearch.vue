@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { Combobox as HCombobox, ComboboxInput as HComboboxInput, ComboboxOption as HComboboxOption, ComboboxOptions as HComboboxOptions } from '@headlessui/vue'
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import type { Hit } from '@nuxtjs/algolia'
-import { commandPalette } from '#ui/ui.config'
 
 type EntryType = 'content' | 'lvl1' | 'lvl2' | 'lvl3' | 'lvl4' | 'lvl5' | 'lvl6'
 
@@ -21,25 +19,17 @@ interface SearchItem {
   url: string
 }
 
-const config = computed(() => ({
-  padding: 'p-0 sm:p-4',
-  rounded: 'rounded-none sm:rounded-lg',
-  width: 'sm:max-w-3xl',
-  height: 'h-dvh sm:h-[28rem]',
-}))
-const { ui: searchUi } = useUI('content.search', undefined, config, undefined, true)
-const { ui: commandPaletteUi } = useUI('commandPalette', undefined, commandPalette, undefined)
-
 const { result, search } = useAlgoliaSearch<SearchItem>('vknet')
 const breakpoints = useBreakpoints(breakpointsTailwind)
 
-// replace of the ui-pro one
-const { isContentSearchModalOpen } = useUIState()
+const searchOpen = useState('searchOpen', () => false)
+
 const smallerThanSm = breakpoints.smaller('sm')
 const loading = ref(false)
 
 const query = ref('')
 const searchActive = ref(false)
+const activeIndex = ref(0)
 
 const debouncedSearch = useDebounceFn(async () => {
   loading.value = true
@@ -47,11 +37,10 @@ const debouncedSearch = useDebounceFn(async () => {
   const snippetLength = 10
   await search({
     query: query.value,
-    // attributesToHighlight: ['title', 'content'],
     requestOptions: {
       highlightPreTag: '<mark>',
       highlightPostTag: '</mark>',
-      snippetEllipsisText: '…',
+      snippetEllipsisText: '...',
       clickAnalytics: true,
       attributesToRetrieve: [
         'hierarchy.lvl0',
@@ -77,14 +66,17 @@ const debouncedSearch = useDebounceFn(async () => {
     },
   })
   searchActive.value = true
+  activeIndex.value = 0
   loading.value = false
 }, 200, { maxWait: 500 })
 
+const flatHits = computed(() => result.value.hits)
+
 const groupedSearchResult = computed(() => {
-  const groups: { [key: string]: any[] } = {};
+  const groups: { [key: string]: any[] } = {}
   for (const item of result.value.hits) {
-    groups[item.hierarchy.lvl0 || ''] = groups[item.hierarchy.lvl0 || ''] || [];
-    groups[item.hierarchy.lvl0 || ''].push(item);
+    groups[item.hierarchy.lvl0 || ''] = groups[item.hierarchy.lvl0 || ''] || []
+    groups[item.hierarchy.lvl0 || ''].push(item)
   }
   return groups
 })
@@ -121,131 +113,144 @@ function onSelect(hit: Hit<SearchItem>) {
   if (url.startsWith(hostname)) {
     url = url.substring(hostname.length)
   }
-  onClose();
+  onClose()
   router.push(url)
 }
 
 function onClose() {
-  isContentSearchModalOpen.value = false;
-  query.value = '';
-  searchActive.value = false;
-  loading.value = false;
+  searchOpen.value = false
+  query.value = ''
+  searchActive.value = false
+  loading.value = false
+  activeIndex.value = 0
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    activeIndex.value = Math.min(activeIndex.value + 1, flatHits.value.length - 1)
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    activeIndex.value = Math.max(activeIndex.value - 1, 0)
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    if (flatHits.value[activeIndex.value]) {
+      onSelect(flatHits.value[activeIndex.value])
+    }
+  }
 }
 
 defineShortcuts({
   meta_k: {
     usingInput: true,
     handler: () => {
-      isContentSearchModalOpen.value = true
+      searchOpen.value = true
     },
-  },
-  escape: {
-    usingInput: true,
-    whenever: [isContentSearchModalOpen],
-    handler: () => { isContentSearchModalOpen.value = false },
   },
 })
 </script>
 
 <template>
-  <UModal v-model="isContentSearchModalOpen" :overlay="!smallerThanSm" :transition="!smallerThanSm" :ui="searchUi">
-    <HCombobox
-      as="div"
-      class="flex flex-col flex-1 min-h-0 divide-y divide-gray-100 dark:divide-gray-800"
-      @update:model-value="onSelect"
-      by="objectID"
-    >
-      <div class="relative flex items-center">
-        <UIcon
-          :name="loading ? 'i-heroicons-arrow-path-20-solid' : 'i-heroicons-magnifying-glass-20-solid'"
-          aria-hidden="true"
-          :class="loading && 'animate-spin'"
-          class="pointer-events-none absolute start-4 text-gray-400 dark:text-gray-500 h-5 w-5"
-        />
-        <HComboboxInput
-          class="flex-1 placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-0 text-gray-900 dark:text-white focus:ring-0 focus:outline-none sm:text-sm h-[--header-height] sm:h-12 px-4 ps-11"
-          placeholder="Search..."
-          autocomplete="off"
-          :value="query"
-          @change="query = $event.target.value"
-        />
-        <UButton
-          aria-label="Close"
-          class="absolute end-4"
-          icon="i-heroicons-x-mark-20-solid"
-          color="gray"
-          variant="link"
-          :padded="false"
-          @click="onClose"
-        />
-      </div>
-      <div class="flex flex-col min-h-[20rem] grow">
-        <div
-          v-if="query === '' || !searchActive"
-          class="flex-1 flex flex-col items-start justify-center pointer-events-none gap-4 px-10"
-        >
-          <span class="text-gray-400 font-bold">
-            Things you can search for:
-          </span>
-          <ul class="text-gray-400 text-sm">
-            <li>Validation codes</li>
-          </ul>
-        </div>
-        <div
-          v-else-if="!loading && !result.hits.length"
-          class="flex-1 flex flex-col items-center justify-center pointer-events-none gap-4"
-        >
+  <UModal
+    v-model:open="searchOpen"
+    :overlay="!smallerThanSm"
+    :transition="!smallerThanSm"
+    :ui="{
+      content: 'sm:max-w-3xl ' + (smallerThanSm ? 'h-dvh rounded-none' : 'h-[28rem] sm:rounded-lg'),
+    }"
+    :close="false"
+  >
+    <template #content>
+      <div
+        class="flex flex-col flex-1 min-h-0 divide-y divide-default"
+        @keydown="onKeydown"
+      >
+        <div class="relative flex items-center">
           <UIcon
-            name="i-heroicons-magnifying-glass-20-solid"
+            :name="loading ? 'i-lucide-loader-circle' : 'i-lucide-search'"
             aria-hidden="true"
-            class="text-gray-400 dark:text-gray-500 h-6 w-6"
+            :class="loading && 'animate-spin'"
+            class="pointer-events-none absolute start-4 text-muted size-5"
           />
-          <span class="text-gray-400">
-            Not Found
-          </span>
+          <input
+            class="flex-1 placeholder-muted bg-transparent border-0 text-default focus:ring-0 focus:outline-none sm:text-sm h-[--ui-header-height] sm:h-12 px-4 ps-11"
+            placeholder="Search..."
+            autocomplete="off"
+            :value="query"
+            @input="query = ($event.target as HTMLInputElement).value"
+          >
+          <UButton
+            aria-label="Close"
+            class="absolute end-4"
+            icon="i-lucide-x"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            @click="onClose"
+          />
         </div>
-        <HComboboxOptions
-          v-else
-          static
-          class="flex-1 flex flex-col gap-2 overflow-y-auto max-h-full relative scroll-py-10 divide-gray-100 dark:divide-gray-800 divide-y"
-          :class="{
-            'pb-2': result.hits.length <= 2,
-          }"
-        >
-          <div v-for="[key, group] in Object.entries(groupedSearchResult)" :key="key" class="p-2">
-            <div class="text-xs font-semibold text-gray-900 dark:text-white uppercase my-2 px-2">{{  key  }}</div>
-            <HComboboxOption
-              v-for="hit in group"
-              :key="hit.objectID"
-              v-slot="{ active }"
-              :value="hit"
-              as="template"
-            >
-              <div class="cursor-pointer" :class="[commandPaletteUi.group.command.base, active ? commandPaletteUi.group.command.active : commandPaletteUi.group.command.inactive]">
-                <div :class="commandPaletteUi.group.command.container">
-                  <UIcon :name="entryTypeToIcon(hit.type)" :class="[commandPaletteUi.group.command.icon.base, active ? commandPaletteUi.group.command.icon.active : commandPaletteUi.group.command.icon.inactive]" aria-hidden="true" />
-
-                  <div :class="[commandPaletteUi.group.command.label]">
-                    <!-- eslint-disable-next-line vue/no-v-html -->
-                    <div class="truncate flex-none shrink" v-html="header(hit)" />
-                    <!-- eslint-disable-next-line vue/no-v-html -->
-                    <div class="truncate shrink" :class="commandPaletteUi.group.command.suffix" v-html="content(hit)" />
-                  </div>
+        <div class="flex flex-col min-h-[20rem] grow overflow-hidden">
+          <div
+            v-if="query === '' || !searchActive"
+            class="flex-1 flex flex-col items-start justify-center pointer-events-none gap-4 px-10"
+          >
+            <span class="text-muted font-bold">
+              Things you can search for:
+            </span>
+            <ul class="text-muted text-sm">
+              <li>Validation codes</li>
+            </ul>
+          </div>
+          <div
+            v-else-if="!loading && !result.hits.length"
+            class="flex-1 flex flex-col items-center justify-center pointer-events-none gap-4"
+          >
+            <UIcon
+              name="i-lucide-search"
+              aria-hidden="true"
+              class="text-muted size-6"
+            />
+            <span class="text-muted">
+              Not Found
+            </span>
+          </div>
+          <div
+            v-else
+            class="flex-1 flex flex-col gap-2 overflow-y-auto max-h-full scroll-py-10 divide-default divide-y"
+          >
+            <div v-for="[key, group] in Object.entries(groupedSearchResult)" :key="key" class="p-2">
+              <div class="text-xs font-semibold text-default uppercase my-2 px-2">{{ key }}</div>
+              <div
+                v-for="(hit, hitIndex) in group"
+                :key="hit.objectID"
+                class="cursor-pointer flex items-center gap-2 px-2 py-1.5 rounded-md text-sm"
+                :class="flatHits.indexOf(hit) === activeIndex ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-muted/50'"
+                @click="onSelect(hit)"
+                @mouseenter="activeIndex = flatHits.indexOf(hit)"
+              >
+                <UIcon :name="entryTypeToIcon(hit.type)" class="size-4 shrink-0" aria-hidden="true" />
+                <div class="flex items-center gap-1 min-w-0">
+                  <!-- eslint-disable-next-line vue/no-v-html -->
+                  <div class="truncate flex-none shrink" v-html="header(hit)" />
+                  <!-- eslint-disable-next-line vue/no-v-html -->
+                  <div v-if="content(hit)" class="truncate shrink text-xs text-muted" v-html="content(hit)" />
                 </div>
               </div>
-            </HComboboxOption>
+            </div>
           </div>
-        </HComboboxOptions>
+        </div>
+        <div class="pb-2 pt-1 px-8 text-right">
+          <UIcon class="w-16 ml-2" name="logos:algolia" />
+        </div>
       </div>
-      <div class="pb-2 pt-1 px-8 text-right">
-        <UIcon class="w-16 ml-2" name="logos:algolia" />
-      </div>
-    </HCombobox>
+    </template>
   </UModal>
 </template>
 
 <style>
+@reference "~/assets/style.css";
+
 mark {
-  @apply bg-primary-400;
+  @apply bg-primary/40;
 }
 </style>
