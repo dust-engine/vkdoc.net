@@ -4,3 +4,13 @@
 .katex-display {
   font-size: 0.7rem;
 }
+
+.docbody {
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+}
+
+.docbody .refpage-header-container {
+  margin-left: 1px;
+  margin-right: 1px;
+}

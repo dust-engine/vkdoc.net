@@ -30,6 +30,8 @@ const loading = ref(false)
 const query = ref('')
 const searchActive = ref(false)
 const activeIndex = ref(0)
+const inputRef = ref<HTMLInputElement>()
+const resultsRef = ref<HTMLElement>()
 
 const debouncedSearch = useDebounceFn(async () => {
   loading.value = true
@@ -73,23 +75,40 @@ const debouncedSearch = useDebounceFn(async () => {
 const flatHits = computed(() => result.value.hits)
 
 const groupedSearchResult = computed(() => {
-  const groups: { [key: string]: any[] } = {}
+  const groups: { label: string, hits: Hit<SearchItem>[] }[] = []
+  const seen = new Map<string, number>()
   for (const item of result.value.hits) {
-    groups[item.hierarchy.lvl0 || ''] = groups[item.hierarchy.lvl0 || ''] || []
-    groups[item.hierarchy.lvl0 || ''].push(item)
+    const key = item.hierarchy.lvl0 || ''
+    const idx = seen.get(key)
+    if (idx !== undefined) {
+      groups[idx].hits.push(item)
+    }
+    else {
+      seen.set(key, groups.length)
+      groups.push({ label: key, hits: [item] })
+    }
   }
   return groups
 })
 
+// Precompute flat index for each hit to avoid O(n) indexOf in the template
+const hitFlatIndex = computed(() => {
+  const map = new WeakMap<Hit<SearchItem>, number>()
+  flatHits.value.forEach((hit, i) => map.set(hit, i))
+  return map
+})
+
 watch(query, debouncedSearch)
 
+watch(searchOpen, (open) => {
+  if (open) {
+    nextTick(() => inputRef.value?.focus())
+  }
+})
+
 function entryTypeToIcon(entryType: EntryType): string {
-  if (entryType === 'content') {
-    return 'i-lucide-text'
-  }
-  if (entryType === 'lvl1') {
-    return 'i-lucide-book-open'
-  }
+  if (entryType === 'content') return 'i-lucide-text'
+  if (entryType === 'lvl1') return 'i-lucide-book-open'
   return 'i-lucide-hash'
 }
 
@@ -99,6 +118,7 @@ function content(hit: Hit<SearchItem>) {
   }
   return null
 }
+
 function header(hit: Hit<SearchItem>) {
   if (hit.type === 'content') {
     return hit._snippetResult?.hierarchy?.lvl1?.value
@@ -107,6 +127,7 @@ function header(hit: Hit<SearchItem>) {
 }
 
 const router = useRouter()
+
 function onSelect(hit: Hit<SearchItem>) {
   let url = hit.url
   const hostname = 'https://vkdoc.net'
@@ -125,14 +146,24 @@ function onClose() {
   activeIndex.value = 0
 }
 
+function scrollActiveIntoView() {
+  nextTick(() => {
+    resultsRef.value?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' })
+  })
+}
+
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'ArrowDown') {
     e.preventDefault()
     activeIndex.value = Math.min(activeIndex.value + 1, flatHits.value.length - 1)
-  } else if (e.key === 'ArrowUp') {
+    scrollActiveIntoView()
+  }
+  else if (e.key === 'ArrowUp') {
     e.preventDefault()
     activeIndex.value = Math.max(activeIndex.value - 1, 0)
-  } else if (e.key === 'Enter') {
+    scrollActiveIntoView()
+  }
+  else if (e.key === 'Enter') {
     e.preventDefault()
     if (flatHits.value[activeIndex.value]) {
       onSelect(flatHits.value[activeIndex.value])
@@ -148,6 +179,13 @@ defineShortcuts({
     },
   },
 })
+
+const suggestions = [
+  { label: 'vkCmdDraw', to: '/man/vkCmdDraw' },
+  { label: 'VkResult', to: '/man/VkResult' },
+  { label: 'VkPhysicalDeviceFeatures', to: '/man/VkPhysicalDeviceFeatures' },
+  { label: 'VK_KHR_ray_tracing_pipeline', to: '/extensions/VK_KHR_ray_tracing_pipeline' },
+]
 </script>
 
 <template>
@@ -156,91 +194,129 @@ defineShortcuts({
     :overlay="!smallerThanSm"
     :transition="!smallerThanSm"
     :ui="{
-      content: 'sm:max-w-3xl ' + (smallerThanSm ? 'h-dvh rounded-none' : 'h-[28rem] sm:rounded-lg'),
+      content: 'sm:max-w-2xl flex flex-col ' + (smallerThanSm ? 'h-dvh rounded-none' : 'max-h-[min(32rem,80vh)] sm:rounded-lg'),
     }"
     :close="false"
   >
     <template #content>
       <div
-        class="flex flex-col flex-1 min-h-0 divide-y divide-default"
+        class="flex flex-col min-h-0 flex-1"
         @keydown="onKeydown"
       >
-        <div class="relative flex items-center">
+        <!-- Search input -->
+        <div class="flex items-center gap-2 px-4 border-b border-default">
           <UIcon
             :name="loading ? 'i-lucide-loader-circle' : 'i-lucide-search'"
             aria-hidden="true"
             :class="loading && 'animate-spin'"
-            class="pointer-events-none absolute start-4 text-muted size-5"
+            class="text-muted size-5 shrink-0"
           />
           <input
-            class="flex-1 placeholder-muted bg-transparent border-0 text-default focus:ring-0 focus:outline-none sm:text-sm h-[--ui-header-height] sm:h-12 px-4 ps-11"
-            placeholder="Search..."
+            ref="inputRef"
+            class="flex-1 bg-transparent border-0 text-default placeholder:text-muted focus:ring-0 focus:outline-none text-sm h-12 min-w-0"
+            placeholder="Search documentation..."
             autocomplete="off"
             :value="query"
             @input="query = ($event.target as HTMLInputElement).value"
           >
-          <UButton
-            aria-label="Close"
-            class="absolute end-4"
-            icon="i-lucide-x"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            @click="onClose"
-          />
+          <UKbd v-if="!smallerThanSm" value="escape" size="sm" />
         </div>
-        <div class="flex flex-col min-h-[20rem] grow overflow-hidden">
-          <div
-            v-if="query === '' || !searchActive"
-            class="flex-1 flex flex-col items-start justify-center pointer-events-none gap-4 px-10"
-          >
-            <span class="text-muted font-bold">
-              Things you can search for:
-            </span>
-            <ul class="text-muted text-sm">
-              <li>Validation codes</li>
-            </ul>
-          </div>
-          <div
-            v-else-if="!loading && !result.hits.length"
-            class="flex-1 flex flex-col items-center justify-center pointer-events-none gap-4"
-          >
-            <UIcon
-              name="i-lucide-search"
-              aria-hidden="true"
-              class="text-muted size-6"
-            />
-            <span class="text-muted">
-              Not Found
-            </span>
-          </div>
-          <div
-            v-else
-            class="flex-1 flex flex-col gap-2 overflow-y-auto max-h-full scroll-py-10 divide-default divide-y"
-          >
-            <div v-for="[key, group] in Object.entries(groupedSearchResult)" :key="key" class="p-2">
-              <div class="text-xs font-semibold text-default uppercase my-2 px-2">{{ key }}</div>
-              <div
-                v-for="(hit, hitIndex) in group"
-                :key="hit.objectID"
-                class="cursor-pointer flex items-center gap-2 px-2 py-1.5 rounded-md text-sm"
-                :class="flatHits.indexOf(hit) === activeIndex ? 'bg-primary/10 text-primary' : 'text-muted hover:bg-muted/50'"
-                @click="onSelect(hit)"
-                @mouseenter="activeIndex = flatHits.indexOf(hit)"
+
+        <!-- Results area -->
+        <div ref="resultsRef" class="flex-1 overflow-y-auto overscroll-contain min-h-0">
+          <!-- Empty state -->
+          <div v-if="!query || !searchActive" class="p-6 space-y-5">
+            <p class="text-xs font-medium text-muted uppercase tracking-wide">
+              Quick links
+            </p>
+            <div class="space-y-1">
+              <NuxtLink
+                v-for="s in suggestions"
+                :key="s.to"
+                :to="s.to"
+                class="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted hover:text-default hover:bg-elevated transition-colors"
+                @click="onClose"
               >
-                <UIcon :name="entryTypeToIcon(hit.type)" class="size-4 shrink-0" aria-hidden="true" />
-                <div class="flex items-center gap-1 min-w-0">
+                <UIcon name="i-lucide-arrow-right" class="size-4 shrink-0" />
+                <span class="font-mono">{{ s.label }}</span>
+              </NuxtLink>
+            </div>
+            <p class="text-xs text-dimmed">
+              Try searching for function names, structs, enums, extensions, or validation codes.
+            </p>
+          </div>
+
+          <!-- No results -->
+          <div v-else-if="!loading && !result.hits.length" class="flex flex-col items-center justify-center gap-3 py-16 px-6">
+            <UIcon name="i-lucide-search-x" class="text-muted size-10" aria-hidden="true" />
+            <p class="text-muted font-medium">
+              No results for "{{ query }}"
+            </p>
+            <p class="text-dimmed text-sm text-center max-w-xs">
+              Try a different search term or check the spelling.
+            </p>
+          </div>
+
+          <!-- Results list -->
+          <div v-else class="p-2">
+            <div v-for="group in groupedSearchResult" :key="group.label" class="mb-2 last:mb-0">
+              <p class="text-[11px] font-semibold text-muted uppercase tracking-wider px-2 py-1.5">
+                {{ group.label }}
+              </p>
+              <div
+                v-for="hit in group.hits"
+                :key="hit.objectID"
+                :data-active="hitFlatIndex.get(hit) === activeIndex"
+                class="group flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-colors"
+                :class="hitFlatIndex.get(hit) === activeIndex ? 'bg-primary text-inverted' : 'text-default hover:bg-elevated'"
+                @click="onSelect(hit)"
+                @mouseenter="activeIndex = hitFlatIndex.get(hit)!"
+              >
+                <UIcon
+                  :name="entryTypeToIcon(hit.type)"
+                  class="size-4 shrink-0 transition-colors"
+                  :class="hitFlatIndex.get(hit) === activeIndex ? 'text-inverted' : 'text-muted'"
+                  aria-hidden="true"
+                />
+                <div class="flex flex-col gap-0.5 min-w-0 flex-1">
                   <!-- eslint-disable-next-line vue/no-v-html -->
-                  <div class="truncate flex-none shrink" v-html="header(hit)" />
+                  <span class="text-sm font-medium truncate" v-html="header(hit)" />
                   <!-- eslint-disable-next-line vue/no-v-html -->
-                  <div v-if="content(hit)" class="truncate shrink text-xs text-muted" v-html="content(hit)" />
+                  <span
+                    v-if="content(hit)"
+                    class="text-xs truncate transition-colors"
+                    :class="hitFlatIndex.get(hit) === activeIndex ? 'text-inverted/70' : 'text-muted'"
+                    v-html="content(hit)"
+                  />
                 </div>
+                <UIcon
+                  name="i-lucide-corner-down-left"
+                  class="size-4 shrink-0 opacity-0 transition-opacity"
+                  :class="hitFlatIndex.get(hit) === activeIndex && 'opacity-100'"
+                  aria-hidden="true"
+                />
               </div>
             </div>
           </div>
         </div>
-        <div class="pb-2 pt-1 px-8 text-right">
-          <UIcon class="w-16 ml-2" name="logos:algolia" />
+
+        <!-- Footer -->
+        <div class="flex items-center justify-between border-t border-default px-4 py-2">
+          <div v-if="!smallerThanSm" class="flex items-center gap-3 text-xs text-muted">
+            <span class="inline-flex items-center gap-1">
+              <UKbd value="enter" size="sm" />
+              select
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <UKbd size="sm">&uarr;</UKbd>
+              <UKbd size="sm">&darr;</UKbd>
+              navigate
+            </span>
+          </div>
+          <div class="flex items-center gap-1.5 text-xs text-muted ml-auto">
+            Search by
+            <UIcon class="h-4" name="logos:algolia" />
+          </div>
         </div>
       </div>
     </template>
@@ -251,6 +327,6 @@ defineShortcuts({
 @reference "~/assets/style.css";
 
 mark {
-  @apply bg-primary/40;
+  @apply bg-primary/40 text-inherit;
 }
 </style>

@@ -3,7 +3,12 @@ UHeader
   template(#title)
     | VulkanHub
   template(#right)
-    UButton(label="Search" icon="i-lucide-search" color="neutral" variant="ghost" @click="searchOpen = true")
+    UButton(icon="i-lucide-search" color="neutral" variant="ghost" @click="searchOpen = true")
+      template(#trailing)
+        .hidden(class="sm:inline-flex items-center gap-0.5")
+          span Search
+          UKbd(value="meta" size="sm")
+          UKbd(value="K" size="sm")
     UColorModeButton
     UButton(to="https://github.com/dust-engine/vkdoc.net" target="_blank" icon="i-simple-icons-github" color="neutral" variant="ghost")
   template(#body)
