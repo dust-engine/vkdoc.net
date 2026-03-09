@@ -20,7 +20,6 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxt/content',
     '@nuxtjs/sitemap',
-    'nuxt-meilisearch',
     '@vueuse/nuxt',
     '@nuxtjs/plausible',
     '@nuxtjs/algolia',
@@ -37,11 +36,6 @@ export default defineNuxtConfig({
   components: {
     global: true,
     dirs: ['~/components'],
-  },
-
-  meilisearch: {
-    hostUrl: 'https://search.vkdoc.net',
-    searchApiKey: '3653930cde1ea048501e365b9cd24fc7df4a40248bb2ef185868468c3203ccf8',
   },
 
   site: {
