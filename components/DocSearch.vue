@@ -85,12 +85,12 @@ watch(query, debouncedSearch)
 
 function entryTypeToIcon(entryType: EntryType): string {
   if (entryType === 'content') {
-    return '@dust:fa6-pro-solid:text-size'
+    return 'i-lucide-text'
   }
   if (entryType === 'lvl1') {
-    return '@dust:fa6-pro-solid:book'
+    return 'i-lucide-book-open'
   }
-  return '@dust:fa6-pro-solid:hashtag'
+  return 'i-lucide-hash'
 }
 
 function content(hit: Hit<SearchItem>) {

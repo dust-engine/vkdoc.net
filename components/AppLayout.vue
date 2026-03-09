@@ -5,7 +5,7 @@ UHeader
   template(#right)
     UButton(label="Search" icon="i-lucide-search" color="neutral" variant="ghost" @click="searchOpen = true")
     UColorModeButton
-    UButton(to="https://github.com/Neo-Zhixing/vkdoc.net" target="_blank" icon="i-simple-icons-github" color="neutral" variant="ghost")
+    UButton(to="https://github.com/dust-engine/vkdoc.net" target="_blank" icon="i-simple-icons-github" color="neutral" variant="ghost")
   template(#body)
     LazyDocNav
 UMain

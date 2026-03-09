@@ -15,7 +15,7 @@ const chapters = computed(() => {
   }))
   return [{
     title: 'Vulkan Specification',
-    icon: '@dust:fa6-pro-light:books',
+    icon: 'i-lucide-book-open',
     children: items,
   }]
 })
@@ -30,7 +30,7 @@ const appendix = computed(() => {
   }))
   return [{
     title: 'Appendix',
-    icon: '@dust:fa6-pro-light:paperclip',
+    icon: 'i-lucide-paperclip',
     children: items,
   }]
 })
@@ -62,7 +62,7 @@ const extensions = computed(() => {
   delete vendors.EXT
   return [{
     title: 'Extensions',
-    icon: '@dust:fa6-pro-light:puzzle-piece',
+    icon: 'i-lucide-puzzle',
     children: [{
       title: 'Khronos (KHR)',
       children: khr,
@@ -90,9 +90,9 @@ const extensions = computed(() => {
           NV: 'simple-icons:nvidia',
           NVX: 'simple-icons:nvidia',
           ANDROID: 'simple-icons:android',
-          KHR: '@dust:fa6-pro-solid:star',
-          EXT: '@dust:fa6-pro-solid:sparkles',
-        }[a[0] as string] || '@dust:fa6-pro-solid:cube'
+          KHR: 'i-lucide-star',
+          EXT: 'i-lucide-sparkles',
+        }[a[0] as string] || 'i-lucide-box'
         return {
           title: a[0],
           icon,

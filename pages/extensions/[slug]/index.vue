@@ -18,13 +18,13 @@ const contacts = computed(() => {
     const contactWords = contact.trim().split(' ')
     const name = contactWords.slice(0, -1).join(' ')
     let handle = contactWords[contactWords.length - 1]
-    let icon = '@dust:fa6-pro-solid:user'
+    let icon = 'i-lucide-user'
     let link = null
     if (handle.startsWith('gitlab:@')) {
-      icon = '@dust:fa6-pro-brands:gitlab'
+      icon = 'i-simple-icons-gitlab'
       handle = handle.replace('gitlab:', '')
     } else if (handle.startsWith('@')) {
-      icon = '@dust:fa6-pro-brands:github'
+      icon = 'i-simple-icons-github'
       const issuePlaceholderText = `[${page.value?.extension}] ${handle} %0A*Here describe the issue or question you have about the ${page.value?.extension} extension*`
       link = `https://github.com/KhronosGroup/Vulkan-Docs/issues/new?body=${issuePlaceholderText}`
     }
