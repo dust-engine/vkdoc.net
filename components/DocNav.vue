@@ -11,7 +11,7 @@ const chapters = computed(() => {
   }
   const items = index.value.filter((i: any) => !i.appendix).map((i: any) => ({
     title: `${i.index}. ${i.title}`,
-    to: `/chapters/${i.id}`,
+    path: `/chapters/${i.id}`,
   }))
   return [{
     title: 'Vulkan Specification',
@@ -26,7 +26,7 @@ const appendix = computed(() => {
 
   const items = index.value.filter((i: any) => i.appendix).map((i: any) => ({
     title: `${String.fromCharCode(65 + i.index)}. ${i.title}`,
-    to: `/chapters/${i.id}`,
+    path: `/chapters/${i.id}`,
   }))
   return [{
     title: 'Appendix',
@@ -44,7 +44,7 @@ const extensions = computed(() => {
     const vendor = extension.extension.match(/^VK_([A-Z]+)_/)![1]
     const item = {
       title: extension.extension,
-      to: `/extensions/${extension.extension}`,
+      path: `/extensions/${extension.extension}`,
     }
     vendors[vendor] = vendors[vendor] || []
     vendors[vendor].push(item)
