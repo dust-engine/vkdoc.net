@@ -16,6 +16,7 @@ watch(
 
 <template lang="pug">
 .mt-5.text-sm
-  ProseH4(:id="name" :class="{'text-primary': titleIsHighlighted}").font-semibold.font-mono.mt-0 {{ name }}
-  slot
+  ProseH4(:id="name" :class="{'text-primary': titleIsHighlighted}").font-semibold.font-mono.mt-0.text-sm {{ name }}
+  .text-muted
+    slot
 </template>
