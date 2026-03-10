@@ -11,7 +11,7 @@ useHead({
       <NuxtPage />
     </NuxtLayout>
     <ClientOnly>
-      <DocSearch />
+      <LazyDocSearch />
     </ClientOnly>
   </UApp>
 </template>

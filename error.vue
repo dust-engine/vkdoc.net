@@ -4,7 +4,7 @@
       <UError :error="error" />
     </NuxtLayout>
     <ClientOnly>
-      <DocSearch />
+      <LazyDocSearch />
     </ClientOnly>
   </UApp>
 </template>
