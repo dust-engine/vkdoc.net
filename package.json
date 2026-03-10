@@ -26,7 +26,7 @@
     "@vueuse/core": "^14.2.1",
     "@vueuse/nuxt": "^14.2.1",
     "better-sqlite3": "^12.6.2",
-    "eslint": "^9.13.0",
+    "eslint": "^9.39.4",
     "nuxt": "^4.3.1",
     "tailwindcss": "^4.2.1",
     "vite-plugin-pug": "^0.4.1"
