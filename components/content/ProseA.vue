@@ -19,6 +19,7 @@ defineProps({
     :href="href"
     :target="target"
     no-prefetch
+    class="text-primary hover:underline"
   >
     <slot />
   </NuxtLink>

@@ -36,7 +36,7 @@ interface Attribute {
   id: string
   title: string
   link: string
-  values: string
+  values: string[]
 }
 
 const attributes = computed<Attribute[]>(() => {
@@ -49,12 +49,11 @@ const attributes = computed<Attribute[]>(() => {
     ['render_pass_scope', 'Render Pass Scope', '/man/vkCmdBeginRenderPass'],
     ['video_coding_scope', 'Video Coding Scope', '/man/vkCmdBeginVideoCodingKHR'],
     ['supported_queue_types', 'Queue Types', '/man/VkQueueFlagBits'],
+    ['tasks', 'Command Type', '/chapters/fundamentals#fundamentals-queueoperation-command-types'],
   ]) {
     if (page.value[key]) {
-      let values = page.value[key]
-      if (Array.isArray(values)) {
-        values = values.join(' / ')
-      }
+      const raw = page.value[key]
+      const values = Array.isArray(raw) ? raw : [raw]
       v.push({
         id: key,
         title: val,
@@ -73,10 +72,9 @@ const parentLink = computed(() => {
   return `/extensions/${p}`
 })
 
-const tasks = computed<string[]>(() => {
-  if (!page.value?.tasks) return []
-  return Array.isArray(page.value.tasks) ? page.value.tasks : [page.value.tasks]
-})
+const showSidebar = computed(() =>
+  !!page.value?.parent || attributes.value.length > 0 || page.value?.structextends?.length || page.value?.extendedby?.length,
+)
 
 useSeoMeta({
   title: page.value.title,
@@ -114,10 +112,10 @@ useHead({
 <template lang="pug">
 UContainer
   UPageHeader(id="man-header" :headline="headline" :title="page.title" :description="page.description")
-  .flex.flex-col(class="lg:grid lg:grid-cols-10 lg:gap-8")
-    UPageBody.docbody.min-w-0(class="lg:col-span-8")
+  .flex.flex-col(class="lg:grid lg:gap-8" :class="showSidebar ? 'lg:grid-cols-10' : ''")
+    UPageBody.docbody.min-w-0(:class="showSidebar ? 'lg:col-span-8' : ''")
       ContentRenderer(v-if="page.body" :value="page")
-    .hidden(class="lg:block lg:col-span-2")
+    .hidden(v-if="showSidebar" class="lg:block lg:col-span-2")
       .sticky.top-20.space-y-4.text-sm.mt-8.min-w-0
         div(v-if="page.parent")
           .font-medium.text-muted.mb-1 Parent
@@ -128,11 +126,7 @@ UContainer
         div(v-for="attrib in attributes" :key="attrib.id")
           NuxtLink.font-medium.text-muted(:to="attrib.link" class="hover:underline") {{ attrib.title }}
           .flex.flex-wrap.gap-1.mt-1
-            UBadge(color="neutral" variant="subtle") {{ attrib.values }}
-        div(v-if="tasks.length")
-          NuxtLink.font-medium.text-muted.mb-1(to="/chapters/fundamentals#fundamentals-queueoperation-command-types" class="hover:underline") Command Type
-          .flex.flex-wrap.gap-1.mt-1
-            UBadge(v-for="t in tasks" :key="t" color="neutral" variant="subtle") {{ t }}
+            UBadge(v-for="val in attrib.values" :key="val" color="neutral" variant="subtle") {{ val }}
         div(v-if="page.structextends?.length")
           .font-medium.text-muted.mb-1 Extends
           NuxtLink.font-mono.block.truncate(v-for="s in page.structextends" :key="s" :to="`/man/${s}`" class="hover:underline" :title="s") {{ s }}
