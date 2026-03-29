@@ -124,17 +124,17 @@ const extensions = computed(() => {
     <UContentNavigation
       :navigation="chapters"
       type="single"
-      :default-open="!($route.path.startsWith('/extensions') || $route.path === '/chapters/extensions')"
+      default-open
     />
     <UContentNavigation
       :navigation="appendix"
       type="single"
-      :default-open="false"
+      default-open
     />
     <UContentNavigation
       :navigation="extensions"
       type="single"
-      :default-open="$route.path.startsWith('/extensions') || $route.path === '/chapters/extensions'"
+      default-open
     />
   </nav>
 </template>

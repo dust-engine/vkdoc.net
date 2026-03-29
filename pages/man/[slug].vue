@@ -123,6 +123,10 @@ UContainer
         div
           .font-medium.text-muted Type
           .text-default {{ headline }}
+        div(v-if="page.successcodes?.length || page.errorcodes?.length")
+          .font-medium.text-muted.mb-1 Return Values
+          .font-mono.block.truncate.text-success(v-for="s in page.successcodes" :key="s" :to="`/man/${s}`" :title="s") {{ s }}
+          .font-mono.block.truncate.text-error(v-for="s in page.errorcodes" :key="s" :to="`/man/${s}`" :title="s") {{ s }}
         div(v-for="attrib in attributes" :key="attrib.id")
           NuxtLink.font-medium.text-muted(:to="attrib.link" class="hover:underline") {{ attrib.title }}
           .flex.flex-wrap.gap-1.mt-1
