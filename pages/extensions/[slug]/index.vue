@@ -63,6 +63,8 @@ function promotionStatusToURL(promotion: string) {
             .text-default {{ page.number }}
           div(v-if="page.promotedto")
             .font-medium.text-muted Promoted To
+          div(v-if="page.promotedto")
+            .font-medium.text-muted Promoted To
             NuxtLink.underline(:to="promotionStatusToURL(page.promotedto)") {{ page.promotedto }}
           div(v-if="page.deprecatedby")
             .font-medium.text-muted Deprecated By
