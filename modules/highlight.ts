@@ -4,6 +4,14 @@ const logger = useLogger('highlight')
 
 export default defineNuxtModule({
   async setup(_, nuxt) {
+    // Prerender routes are only needed for `nuxt build` / `nuxt generate`.
+    // In dev, Nuxt 4.4+ converts every prerender route into a route rule and
+    // compiles them all into the virtual route-rules.mjs module — with ~3600
+    // routes the generated code overflows Rollup's parser stack.
+    if (nuxt.options.dev) {
+      return
+    }
+
     nuxt.options.nitro.prerender = nuxt.options.nitro.prerender || {}
     nuxt.options.nitro.prerender.routes = nuxt.options.nitro.prerender.routes || []
     const routes = new Set(nuxt.options.nitro.prerender.routes)

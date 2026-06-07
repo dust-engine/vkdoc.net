@@ -61,8 +61,9 @@ function promotionStatusToURL(promotion: string) {
           div
             .font-medium.text-muted Registered Extension Number
             .text-default {{ page.number }}
-          div(v-if="page.promotedto")
-            .font-medium.text-muted Promoted To
+          div(v-if="page.date_added")
+            .font-medium.text-muted Date Added
+            .text-default {{ page.date_added }}
           div(v-if="page.promotedto")
             .font-medium.text-muted Promoted To
             NuxtLink.underline(:to="promotionStatusToURL(page.promotedto)") {{ page.promotedto }}
