@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.0.0",
+    "@docsearch/css": "^4.6.3",
     "@docsearch/js": "^4.6.3",
     "@nuxt/content": "^3.14.0",
     "@nuxt/ui": "^4.8.2",
