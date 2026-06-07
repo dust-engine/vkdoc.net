@@ -41,7 +41,7 @@ const extensions = computed(() => {
   const vendors: { [key: string]: any[] } = {}
   const specialuse: { [key: string]: any[] } = {}
   for (const extension of extensionIndex.value) {
-    const vendor = extension.extension.match(/^VK_([A-Z]+)_/)![1]
+    const vendor = extensionVendor(extension.extension)
     const item = {
       title: extension.extension,
       path: `/extensions/${extension.extension}`,
@@ -71,34 +71,11 @@ const extensions = computed(() => {
       children: ext,
     }, {
       title: 'Vendor Specific',
-      children: Object.entries(vendors).map((a) => {
-        const icon = {
-          AMDX: 'bi:amd',
-          AMD: 'bi:amd',
-          MSFT: 'simple-icons:microsoft',
-          GOOGLE: 'mdi:google',
-          GGP: 'mdi:google',
-          ARM: 'simple-icons:arm',
-          INTEL: 'simple-icons:intel',
-          HUAWEI: 'simple-icons:huawei',
-          VALVE: 'simple-icons:valve',
-          SEC: 'simple-icons:samsung',
-          MVK: 'simple-icons:apple',
-          NN: 'simple-icons:nintendo',
-          QCOM: 'simple-icons:qualcomm',
-          QNX: 'simple-icons:blackberry',
-          NV: 'simple-icons:nvidia',
-          NVX: 'simple-icons:nvidia',
-          ANDROID: 'simple-icons:android',
-          KHR: 'i-lucide-star',
-          EXT: 'i-lucide-sparkles',
-        }[a[0] as string] || 'i-lucide-box'
-        return {
-          title: a[0],
-          icon,
-          children: a[1],
-        }
-      }),
+      children: Object.entries(vendors).map(a => ({
+        title: a[0],
+        icon: vendorIcon(a[0]),
+        children: a[1],
+      })),
     }, {
       title: 'Special Use',
       children: Object.entries(specialuse).map((a) => {

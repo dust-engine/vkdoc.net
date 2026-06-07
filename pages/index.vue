@@ -9,6 +9,7 @@ useSeoMeta({
 
 const { data: version } = useFetch('https://data.vkdoc.net/index.json')
 const { data: topPages } = useFetch<{ page: string, visitors: number }[]>('/api/top')
+const { data: extensions } = useFetch<{ extension: string, author: string, date_added: string, description: string }[]>('/api/new-extensions')
 
 const versionLabel = computed(() =>
   version.value ? `Vulkan ${version.value.version}` : '',
@@ -24,6 +25,18 @@ const topPagesList = computed(() => {
     name: p.page.replace('/man/', ''),
     to: p.page,
     visitors: p.visitors,
+  }))
+})
+
+const newExtensions = computed(() => {
+  if (!extensions.value) return []
+  return extensions.value.map(e => ({
+    name: e.extension,
+    to: `/extensions/${e.extension}`,
+    author: e.author,
+    description: e.description,
+    icon: vendorIcon(extensionVendor(e.extension)),
+    dateAdded: new Date(e.date_added).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
   }))
 })
 </script>
@@ -93,6 +106,29 @@ const topPagesList = computed(() => {
       { title: 'Open Source', description: 'The entire site is open source. Contributions and feedback are welcome on GitHub.', icon: 'i-lucide-github' },
     ]"
   />
+
+  <UPageSection
+    v-if="newExtensions.length"
+    headline="New"
+    title="New Extensions"
+    description="The most recently added Vulkan extensions."
+  >
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <NuxtLink
+        v-for="item in newExtensions"
+        :key="item.to"
+        :to="item.to"
+        class="flex items-start gap-3 rounded-lg border border-default px-4 py-3 text-sm hover:bg-elevated transition-colors"
+      >
+        <UIcon :name="item.icon" class="text-primary size-4 shrink-0 mt-0.5" />
+        <div class="min-w-0 flex-1">
+          <div class="truncate font-mono text-xs">{{ item.name }}</div>
+          <p v-if="item.description" class="text-xs text-muted mt-1 line-clamp-2">{{ item.description }}</p>
+          <div class="text-xs text-dimmed mt-1">{{ item.author }} &middot; {{ item.dateAdded }}</div>
+        </div>
+      </NuxtLink>
+    </div>
+  </UPageSection>
 
   <UPageSection
     v-if="topPagesList.length"
