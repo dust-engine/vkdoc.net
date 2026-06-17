@@ -7,6 +7,8 @@ useSeoMeta({
   ogDescription: 'Better Vulkan Documentation starts here',
 })
 
+const searchOpen = useState('searchOpen', () => false)
+
 const { data: version } = useFetch('https://data.vkdoc.net/index.json')
 const { data: topPages } = useFetch<{ page: string, visitors: number }[]>('/api/top')
 const { data: extensions } = useFetch<{ extension: string, author: string, date_added: string, description: string }[]>('/api/new-extensions')
@@ -77,16 +79,17 @@ const newExtensions = computed(() => {
         title="Reference Pages"
         description="Look up any function, structure, enum, or handle by name with detailed API documentation."
         icon="i-lucide-file-code"
-        to="/man/VkResult"
         variant="outline"
         spotlight
         spotlight-color="primary"
+        class="cursor-pointer"
+        @click="searchOpen = true"
       />
       <UPageCard
         title="Extensions"
         description="Browse Vulkan extensions by vendor, category, or special use with status and contact info."
         icon="i-lucide-puzzle"
-        to="/extensions/VK_KHR_ray_tracing_pipeline"
+        to="/extensions"
         variant="outline"
         spotlight
         spotlight-color="primary"

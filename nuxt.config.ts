@@ -46,6 +46,7 @@ export default defineNuxtConfig({
     '/chapters': { redirect: '/chapters/introduction' },
     '/chapters/**': { isr: true, prerender: true },
     '/man/**': { isr: true, prerender: true },
+    '/extensions': { isr: true, prerender: true },
     '/extensions/**': { isr: true, prerender: true },
   },
 
